@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -14,7 +13,7 @@ import (
 
 const (
 	ENABLE_LABEL    = "bagop.enable"
-	DB_LABEL        = "bagop.vendor"
+	VENDOR_LABEL    = "bagop.vendor"
 	NAME_LABEL      = "bagop.name"
 	BACKUP_LOCATION = "/backups"
 )
@@ -26,45 +25,73 @@ func containerEnabled(container types.Container) bool {
 }
 
 func findVendor(container types.Container) (string, error) {
-	labelName := strings.ToLower(container.Labels[NAME_LABEL])
+	labelVendor := strings.ToLower(container.Labels[VENDOR_LABEL])
 	allowedVendors := []string{"mysql", "postgres", "mariadb"}
-	if Contains(allowedVendors, labelName) {
-		return labelName, nil
+	if Contains(allowedVendors, labelVendor) {
+		return labelVendor, nil
 	}
 
-	imageName := strings.Split(container.Image, ":")[0]
+	imageVendor := strings.Split(container.Image, ":")[0]
 
-	if Contains(allowedVendors, imageName) {
-		return imageName, nil
+	if Contains(allowedVendors, imageVendor) {
+		return imageVendor, nil
 	}
-	return "", fmt.Errorf("Label:%s, Image:%s not recognized as a supported database", labelName, imageName)
+	return "", fmt.Errorf("Label:%s, Image:%s not recognized as a supported database", labelVendor, imageVendor)
 }
 
-func dumpMysql(container types.Container) {
-
+func findName(container types.Container) string {
+	name := container.Labels[NAME_LABEL]
+	if name == "" {
+		name = container.ID
+	}
+	return name
 }
-func dumpPostgres(container types.Container, cli client.Client) {
+
+func findEnvVar(env []string, find string) string {
+	for _, e := range env {
+		split := strings.Split(e, "=")
+		if split[0] == find {
+			return split[1]
+		}
+	}
+	return ""
+}
+
+func dumpMysql(container types.Container, cli client.Client) error {
+	return nil
+}
+func dumpPostgres(container types.Container, cli client.Client) error {
+
+	inspect, err := cli.ContainerInspect(context.Background(), container.ID)
+	if err != nil {
+		return err
+	}
+	username := findEnvVar(inspect.Config.Env, "POSTGRES_USER")
+	db := findEnvVar(inspect.Config.Env, "POSTGRES_DB")
+
 	config := types.ExecConfig{
 		AttachStdin:  true,
 		AttachStderr: true,
 		AttachStdout: true,
-		Cmd:          []string{"pg_dump", "--username=postgres", "bookit"},
+		Cmd:          []string{"pg_dump", fmt.Sprintf("--username=%s", username), db},
 	}
 	ctx := context.Background()
 
 	IDResp, err := cli.ContainerExecCreate(ctx, container.ID, config)
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
 
 	resp, err := cli.ContainerExecAttach(ctx, IDResp.ID, types.ExecStartCheck{})
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
+
+	name := findName(container)
 	// open output file
-	fo, err := os.Create(container.ID)
+	fo, err := os.Create(name)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	// close fo on exit and check for its returned error
 	defer func() {
@@ -79,7 +106,7 @@ func dumpPostgres(container types.Container, cli client.Client) {
 		// read a chunk
 		n, err := resp.Reader.Read(buf)
 		if err != nil && err != io.EOF {
-			panic(err)
+			return err
 		}
 		if n == 0 {
 			break
@@ -87,9 +114,10 @@ func dumpPostgres(container types.Container, cli client.Client) {
 
 		// write a chunk
 		if _, err := fo.Write(buf[:n]); err != nil {
-			panic(err)
+			return err
 		}
 	}
+	return nil
 
 }
 
@@ -114,9 +142,12 @@ func main() {
 		}
 		switch vendor {
 		case "mysql", "mariadb":
-			dumpMysql(container)
+			err = dumpMysql(container, *cli)
 		case "postgres":
-			dumpPostgres(container, *cli)
+			err = dumpPostgres(container, *cli)
+		}
+		if err != nil {
+			panic(err)
 		}
 	}
 }
