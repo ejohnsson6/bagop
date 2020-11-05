@@ -61,10 +61,8 @@ func dumpPostgres(container types.Container, cli client.Client) {
 	if err != nil {
 		log.Panic(err)
 	}
-
-	fmt.Println(container.Names)
 	// open output file
-	fo, err := os.Create("output.txt")
+	fo, err := os.Create(container.ID)
 	if err != nil {
 		panic(err)
 	}
