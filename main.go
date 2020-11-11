@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/time"
 	"github.com/docker/docker/client"
 )
 
@@ -63,10 +63,10 @@ func readerToFile(reader io.Reader, baseDir string) error {
 
 	os.MkdirAll(baseDir, 0755)
 
-	timestamp := time.Now().Format(time.RFC850)
+	timestamp := time.Now().Format(time.RFC3339)
 
 	// open output file
-	fo, err := os.Create(baseDir)
+	fo, err := os.Create(baseDir + "/" + timestamp)
 	if err != nil {
 		return err
 	}
