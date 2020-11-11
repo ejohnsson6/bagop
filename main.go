@@ -15,7 +15,7 @@ const (
 	ENABLE_LABEL    = "bagop.enable"
 	VENDOR_LABEL    = "bagop.vendor"
 	NAME_LABEL      = "bagop.name"
-	BACKUP_LOCATION = "/backups"
+	BACKUP_LOCATION = "/backups/"
 )
 
 func containerEnabled(container types.Container) bool {
@@ -57,39 +57,9 @@ func findEnvVar(env []string, find string) string {
 	return ""
 }
 
-func dumpMysql(container types.Container, cli client.Client) error {
-	return nil
-}
-func dumpPostgres(container types.Container, cli client.Client) error {
-
-	inspect, err := cli.ContainerInspect(context.Background(), container.ID)
-	if err != nil {
-		return err
-	}
-	username := findEnvVar(inspect.Config.Env, "POSTGRES_USER")
-	db := findEnvVar(inspect.Config.Env, "POSTGRES_DB")
-
-	config := types.ExecConfig{
-		AttachStdin:  true,
-		AttachStderr: true,
-		AttachStdout: true,
-		Cmd:          []string{"pg_dump", fmt.Sprintf("--username=%s", username), db},
-	}
-	ctx := context.Background()
-
-	IDResp, err := cli.ContainerExecCreate(ctx, container.ID, config)
-	if err != nil {
-		return err
-	}
-
-	resp, err := cli.ContainerExecAttach(ctx, IDResp.ID, types.ExecStartCheck{})
-	if err != nil {
-		return err
-	}
-
-	name := findName(container)
+func readerToFile(reader io.Reader, filename string) error {
 	// open output file
-	fo, err := os.Create(name)
+	fo, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
@@ -104,7 +74,7 @@ func dumpPostgres(container types.Container, cli client.Client) error {
 	buf := make([]byte, 1024)
 	for {
 		// read a chunk
-		n, err := resp.Reader.Read(buf)
+		n, err := reader.Read(buf)
 		if err != nil && err != io.EOF {
 			return err
 		}
@@ -116,6 +86,74 @@ func dumpPostgres(container types.Container, cli client.Client) error {
 		if _, err := fo.Write(buf[:n]); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func runCommand(cli client.Client, containerID string, command []string) (io.Reader, error) {
+	config := types.ExecConfig{
+		AttachStdin:  true,
+		AttachStderr: true,
+		AttachStdout: true,
+		Cmd:          command,
+	}
+	ctx := context.Background()
+
+	IDResp, err := cli.ContainerExecCreate(ctx, containerID, config)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := cli.ContainerExecAttach(ctx, IDResp.ID, types.ExecStartCheck{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Reader, nil
+}
+
+func dumpMysql(container types.Container, cli client.Client) error {
+	inspect, err := cli.ContainerInspect(context.Background(), container.ID)
+	if err != nil {
+		return err
+	}
+	username := findEnvVar(inspect.Config.Env, "MYSQL_USER")
+	password := findEnvVar(inspect.Config.Env, "MYSQL_PASSWORD")
+	db := findEnvVar(inspect.Config.Env, "MYSQL_DATABASE")
+
+	name := findName(container)
+
+	command := []string{"mysqldump", fmt.Sprintf("-u%s", username), fmt.Sprintf("-p%s", password), "--skip-comments", "--databases", db}
+
+	reader, err := runCommand(cli, container.ID, command)
+	if err != nil {
+		return err
+	}
+	err = readerToFile(reader, name)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func dumpPostgres(container types.Container, cli client.Client) error {
+
+	inspect, err := cli.ContainerInspect(context.Background(), container.ID)
+	if err != nil {
+		return err
+	}
+	username := findEnvVar(inspect.Config.Env, "POSTGRES_USER")
+	db := findEnvVar(inspect.Config.Env, "POSTGRES_DB")
+
+	name := BACKUP_LOCATION + findName(container)
+
+	command := []string{"pg_dump", fmt.Sprintf("--username=%s", username), db}
+
+	reader, err := runCommand(cli, container.ID, command)
+	if err != nil {
+		return err
+	}
+	err = readerToFile(reader, name)
+	if err != nil {
+		return err
 	}
 	return nil
 
