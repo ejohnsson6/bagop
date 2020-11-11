@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/time"
 	"github.com/docker/docker/client"
 )
 
@@ -57,9 +59,14 @@ func findEnvVar(env []string, find string) string {
 	return ""
 }
 
-func readerToFile(reader io.Reader, filename string) error {
+func readerToFile(reader io.Reader, baseDir string) error {
+
+	os.MkdirAll(baseDir, 0755)
+
+	timestamp := time.Now().Format(time.RFC850)
+
 	// open output file
-	fo, err := os.Create(filename)
+	fo, err := os.Create(baseDir)
 	if err != nil {
 		return err
 	}
@@ -111,7 +118,7 @@ func runCommand(cli client.Client, containerID string, command []string) (io.Rea
 	return resp.Reader, nil
 }
 
-func dumpMysql(container types.Container, cli client.Client) error {
+func dumpMysql(container types.Container, cli client.Client, baseDir string) error {
 	inspect, err := cli.ContainerInspect(context.Background(), container.ID)
 	if err != nil {
 		return err
@@ -134,7 +141,7 @@ func dumpMysql(container types.Container, cli client.Client) error {
 	}
 	return nil
 }
-func dumpPostgres(container types.Container, cli client.Client) error {
+func dumpPostgres(container types.Container, cli client.Client, baseDir string) error {
 
 	inspect, err := cli.ContainerInspect(context.Background(), container.ID)
 	if err != nil {
@@ -178,10 +185,13 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
 		switch vendor {
 		case "mysql", "mariadb":
+			log.Printf("Dumping MYSQL/MariaDB container %s", container.ID)
 			err = dumpMysql(container, *cli)
 		case "postgres":
+			log.Printf("Dumping PostgreSQL container %s", container.ID)
 			err = dumpPostgres(container, *cli)
 		}
 		if err != nil {
