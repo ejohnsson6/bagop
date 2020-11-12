@@ -118,7 +118,7 @@ func runCommand(cli client.Client, containerID string, command []string) (io.Rea
 	return resp.Reader, nil
 }
 
-func dumpMysql(container types.Container, cli client.Client, baseDir string) error {
+func dumpMysql(container types.Container, cli client.Client) error {
 	inspect, err := cli.ContainerInspect(context.Background(), container.ID)
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func dumpMysql(container types.Container, cli client.Client, baseDir string) err
 	}
 	return nil
 }
-func dumpPostgres(container types.Container, cli client.Client, baseDir string) error {
+func dumpPostgres(container types.Container, cli client.Client) error {
 
 	inspect, err := cli.ContainerInspect(context.Background(), container.ID)
 	if err != nil {
