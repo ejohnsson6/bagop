@@ -167,6 +167,7 @@ func dumpPostgres(container types.Container, cli client.Client) error {
 }
 
 func main() {
+	log.Println("Looking for labled containers")
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
