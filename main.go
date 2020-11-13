@@ -41,12 +41,12 @@ func findVendor(container types.Container) (string, error) {
 	return "", fmt.Errorf("Label:%s, Image:%s not recognized as a supported database", labelVendor, imageVendor)
 }
 
-func findName(container types.Container) string {
+func findBaseDir(container types.Container) string {
 	name := container.Labels[NAME_LABEL]
 	if name == "" {
 		name = container.ID
 	}
-	return name
+	return BACKUP_LOCATION + name
 }
 
 func findEnvVar(env []string, find string) string {
@@ -127,7 +127,7 @@ func dumpMysql(container types.Container, cli client.Client) error {
 	password := findEnvVar(inspect.Config.Env, "MYSQL_PASSWORD")
 	db := findEnvVar(inspect.Config.Env, "MYSQL_DATABASE")
 
-	name := findName(container)
+	name := findBaseDir(container)
 
 	command := []string{"mysqldump", fmt.Sprintf("-u%s", username), fmt.Sprintf("-p%s", password), "--skip-comments", "--databases", db}
 
@@ -150,7 +150,7 @@ func dumpPostgres(container types.Container, cli client.Client) error {
 	username := findEnvVar(inspect.Config.Env, "POSTGRES_USER")
 	db := findEnvVar(inspect.Config.Env, "POSTGRES_DB")
 
-	name := BACKUP_LOCATION + findName(container)
+	name := findBaseDir(container)
 
 	command := []string{"pg_dump", fmt.Sprintf("--username=%s", username), db}
 
