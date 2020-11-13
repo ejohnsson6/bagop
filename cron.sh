@@ -1,5 +1,4 @@
-set -x
-echo "$CRON /app/bagop" > ./bagop-cron
+echo "$CRON /app/bagop" > ./bagop-cron > /var/log/cron.log 2>&1
 
 # Copy bagop-cron file to the cron.d directory
 mv ./bagop-cron /etc/cron.d/bagop-cron
