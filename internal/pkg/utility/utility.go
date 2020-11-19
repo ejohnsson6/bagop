@@ -1,6 +1,6 @@
-package main
+package utility
 
-// Returns true if a list of strings contains an item
+// Contains returns true if a list of strings contains an item
 func Contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
