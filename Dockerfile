@@ -1,7 +1,7 @@
 # build stage
 FROM golang:latest AS build-env
 ADD . /src
-RUN cd /src && go build -o bagop
+RUN cd /src && go build -o bagop github.com/swexbe/bagop/cmd/bagop
 
 # final stage
 FROM ubuntu:latest
