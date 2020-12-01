@@ -24,7 +24,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	l.Logger.Infof("Found %i", len(containers))
+	l.Logger.Infof("Found %d", len(containers))
 
 	for _, container := range containers {
 		l.Logger.Infof("Trying to dump container %s", container.ID[0:12])
