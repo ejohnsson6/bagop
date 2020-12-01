@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/docker/docker/client"
 	"github.com/swexbe/bagop/internal/pkg/db"
 	"github.com/swexbe/bagop/internal/pkg/docker"
 	"github.com/swexbe/bagop/internal/pkg/file"
+	l "github.com/swexbe/bagop/internal/pkg/logging"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 )
 
 func main() {
-	log.Println("Looking for labled containers")
+	l.Logger.Infof("Looking for labled containers")
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
@@ -28,17 +28,18 @@ func main() {
 	for _, container := range containers {
 		vendor, err := docker.FindVendor(container)
 		if err != nil {
-			panic(err)
+			l.Logger.Errorf(err.Error())
+			continue
 		}
 		env := docker.GetEnv(cli, container)
 		var cmd []string
 		containerName := docker.FindName(container)
 		switch vendor {
 		case "mysql", "mariadb":
-			log.Printf("Dumping MYSQL/MariaDB container %s with name %s", container.ID, containerName)
+			l.Logger.Infof("Dumping MYSQL/MariaDB container %s with name %s", container.ID[0:12], containerName)
 			cmd = db.DumpMysqlCmd(env)
 		case "postgres":
-			log.Printf("Dumping PostgreSQL container %s with name %s", container.ID, containerName)
+			l.Logger.Infof("Dumping PostgreSQL container %s with name %s", container.ID[0:12], containerName)
 			cmd = db.DumpPostgresCmd(env)
 		}
 		if err != nil {

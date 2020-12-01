@@ -54,7 +54,7 @@ func FindVendor(container types.Container) (string, error) {
 	if utility.Contains(allowedVendors, imageVendor) {
 		return imageVendor, nil
 	}
-	return "", fmt.Errorf("Label:%s, Image:%s not recognized as a supported database", labelVendor, imageVendor)
+	return "", fmt.Errorf("Container: %s, Label:%s, Image:%s not recognized as a supported database", container.ID[0:12], labelVendor, imageVendor)
 }
 
 // FindName returns the name set by the name label, if no name label exists instead returns the docker ID
