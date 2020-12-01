@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
+// RunCommand runs a command and returns a reader for the output
 func RunCommand(cli *client.Client, container types.Container, command []string) (io.Reader, error) {
 	config := types.ExecConfig{
 		AttachStdin:  true,
@@ -26,5 +27,6 @@ func RunCommand(cli *client.Client, container types.Container, command []string)
 	if err != nil {
 		return nil, err
 	}
+
 	return resp.Reader, nil
 }

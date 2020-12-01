@@ -25,7 +25,7 @@ func GetEnabledContainers(cli *client.Client) ([]types.Container, error) {
 		}
 	}
 
-	return containers, nil
+	return filteredContainers, nil
 }
 
 // GetEnv returns the environment variables of a docker container
