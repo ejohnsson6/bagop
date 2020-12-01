@@ -24,8 +24,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	l.Logger.Infof("Found %i", len(containers))
 
 	for _, container := range containers {
+		l.Logger.Infof("Trying to dump container %s", container.ID[0:12])
 		vendor, err := docker.FindVendor(container)
 		if err != nil {
 			l.Logger.Errorf(err.Error())
@@ -36,10 +38,10 @@ func main() {
 		containerName := docker.FindName(container)
 		switch vendor {
 		case "mysql", "mariadb":
-			l.Logger.Infof("Dumping MYSQL/MariaDB container %s with name %s", container.ID[0:12], containerName)
+			l.Logger.Infof("Dumping as MYSQL/MariaDB container with name %s", containerName)
 			cmd = db.DumpMysqlCmd(env)
 		case "postgres":
-			l.Logger.Infof("Dumping PostgreSQL container %s with name %s", container.ID[0:12], containerName)
+			l.Logger.Infof("Dumping as PostgreSQL container with name %s", containerName)
 			cmd = db.DumpPostgresCmd(env)
 		}
 		if err != nil {
