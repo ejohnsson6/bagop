@@ -25,6 +25,7 @@ func main() {
 		panic(err)
 	}
 	l.Logger.Infof("Found %d", len(containers))
+	timestamp := time.Now().Format(time.RFC3339)
 
 	for _, container := range containers {
 		l.Logger.Infof("Trying to dump container %s", container.ID[0:12])
@@ -53,7 +54,6 @@ func main() {
 		}
 
 		dir := backupLocation + containerName + "/"
-		timestamp := time.Now().Format(time.RFC3339)
 		file.ReaderToFile(reader, dir, timestamp)
 	}
 }
