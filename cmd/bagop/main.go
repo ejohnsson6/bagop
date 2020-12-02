@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/client"
+	"github.com/swexbe/bagop/internal/pkg/aws"
 	"github.com/swexbe/bagop/internal/pkg/db"
 	"github.com/swexbe/bagop/internal/pkg/docker"
 	"github.com/swexbe/bagop/internal/pkg/file"
@@ -56,4 +57,5 @@ func main() {
 		dir := backupLocation + containerName + "/"
 		file.ReaderToFile(reader, dir, timestamp)
 	}
+	aws.Test()
 }
