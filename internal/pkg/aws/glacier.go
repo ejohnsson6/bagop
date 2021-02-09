@@ -45,6 +45,6 @@ func UploadFile(fileLocation string, timestamp string) error {
 		return err
 	}
 
-	l.Logger.Infof("Upload succeded with id %s", *result.ArchiveId)
+	l.Logger.Infof("Upload succeeded with id %s", *result.ArchiveId)
 	return nil
 }

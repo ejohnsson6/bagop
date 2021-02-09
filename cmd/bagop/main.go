@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		l.Logger.Infof(err.Error())
 	}
-	l.Logger.Infof("Looking for labled containers")
+	l.Logger.Infof("Looking for labelled containers")
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	panicIfErr(err)
 	containers, err := docker.GetEnabledContainers(cli)

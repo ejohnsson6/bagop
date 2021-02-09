@@ -10,6 +10,7 @@ import (
 	l "github.com/swexbe/bagop/internal/pkg/logging"
 )
 
+// FolderToTarGZ compresses all files in a directory into a gzipped tar file
 func FolderToTarGZ(sourcedir string, destinationfile string) error {
 
 	dir, err := os.Open(sourcedir)
