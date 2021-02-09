@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/joho/godotenv"
+	"github.com/swexbe/bagop/internal/pkg/aws"
 	"github.com/swexbe/bagop/internal/pkg/db"
 	"github.com/swexbe/bagop/internal/pkg/docker"
 	"github.com/swexbe/bagop/internal/pkg/file"
@@ -16,6 +17,12 @@ const (
 	backupLocation = "/tmp/bagop/"
 )
 
+func panicIfErr(err error) {
+	if err != nil {
+		l.Logger.Fatalf(err.Error())
+	}
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -23,13 +30,9 @@ func main() {
 	}
 	l.Logger.Infof("Looking for labled containers")
 	cli, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 	containers, err := docker.GetEnabledContainers(cli)
-	if err != nil {
-		panic(err)
-	}
+	panicIfErr(err)
 	l.Logger.Infof("Found %d", len(containers))
 	timestamp := time.Now().Format(time.RFC3339)
 
@@ -53,18 +56,16 @@ func main() {
 			l.Logger.Infof("Dumping as PostgreSQL container with name %s", containerName)
 			cmd = db.DumpPostgresCmd(env)
 		}
-		if err != nil {
-			panic(err)
-		}
+		panicIfErr(err)
 		reader, err := docker.RunCommand(cli, container, cmd)
-		if err != nil {
-			panic(err)
-		}
+		panicIfErr(err)
 
 		file.ReaderToFile(reader, backupLocation, containerName+".sql")
 
 	}
 	tarFileLocation := backupLocation + timestamp + ".tar.gz"
 	file.FolderToTarGZ(backupLocation, tarFileLocation)
-	//aws.Test()
+
+	err = aws.UploadFile(tarFileLocation, timestamp)
+	panicIfErr(err)
 }
