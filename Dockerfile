@@ -9,6 +9,8 @@ WORKDIR /app
 COPY --from=build-env /src/bagop /app/
 COPY cron.sh /app/
 
-RUN apt-get update && apt-get -y install cron
+RUN apt-get update 
+RUN apt-get -y install cron
+RUN apt-get -y install ca-certificates
 
 CMD ./cron.sh
