@@ -1,10 +1,11 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/docker/docker/client"
-	"github.com/swexbe/bagop/internal/pkg/aws"
+	"github.com/joho/godotenv"
 	"github.com/swexbe/bagop/internal/pkg/db"
 	"github.com/swexbe/bagop/internal/pkg/docker"
 	"github.com/swexbe/bagop/internal/pkg/file"
@@ -12,10 +13,14 @@ import (
 )
 
 const (
-	backupLocation = "/backups/"
+	backupLocation = "/tmp/bagop/"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		l.Logger.Infof(err.Error())
+	}
 	l.Logger.Infof("Looking for labled containers")
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -27,6 +32,8 @@ func main() {
 	}
 	l.Logger.Infof("Found %d", len(containers))
 	timestamp := time.Now().Format(time.RFC3339)
+
+	os.RemoveAll(backupLocation)
 
 	for _, container := range containers {
 		l.Logger.Infof("Trying to dump container %s", container.ID[0:12])
@@ -54,8 +61,10 @@ func main() {
 			panic(err)
 		}
 
-		dir := backupLocation + containerName + "/"
-		file.ReaderToFile(reader, dir, timestamp)
+		file.ReaderToFile(reader, backupLocation, containerName+".sql")
+
 	}
-	aws.Test()
+	tarFileLocation := backupLocation + timestamp + ".tar.gz"
+	file.FolderToTarGZ(backupLocation, tarFileLocation)
+	//aws.Test()
 }
