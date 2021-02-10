@@ -26,7 +26,7 @@ docker run -e S3_VAULT_NAME=yourvault
 
 # Configuration
 
-The application is configured through environment variables
+The application is configured through environment variables.
 
 | Key                   | Required | Description                                                         | Example      |
 | --------------------- | -------- | ------------------------------------------------------------------- | ------------ |
@@ -37,6 +37,14 @@ The application is configured through environment variables
 | CRON                  | yes      | Any valid cron time/date field [crontab.guru](https://crontab.guru) | 0 1 \* \* \* |
 
 Additional environment variables for configuring the connection to AWS and Docker are also available. Documentation for these can be found in [Docker Go SDK docs](https://pkg.go.dev/github.com/docker/docker/client#NewEnvClient) and [AWS for Go docs](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html).
+
+To configure backups for an individual container, the following docker labels can be set:
+
+| Key          | Required | Description                                                                                                                    |
+|--------------|----------|--------------------------------------------------------------------------------------------------------------------------------|
+| bagop.enable | yes      | Enable bagop for this container if set to ``true``                                                                             |
+| bagop.name   | no       | The name of the resulting .sql file for this container,  will use docker id if not set                                         |
+| bagop.vendor | no       | can be set to ``postgres`` or ``mysql``. Overrides vendor detection and forces bagop to treat the container as the given vendor|
 
 # Contributions
 
