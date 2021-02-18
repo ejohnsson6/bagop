@@ -13,7 +13,7 @@ Example run command:
 
 ```
 docker run -e S3_VAULT_NAME=yourvault
-    -e AWS_REGION=eu-north-1
+    -e AWS_DEFAULT_REGION=eu-north-1
     -e AWS_SECRET_ACCESS_KEY=secret
     -e AWS_ACCESS_KEY_ID=secret
     -e CRON="0 1 * * *"
