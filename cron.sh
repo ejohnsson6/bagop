@@ -1,4 +1,4 @@
-echo "$CRON /app/bagop > /var/log/cron.log 2>&1" > ./bagop-cron 
+echo "$CRON . $HOME/.profile; /app/bagop > /var/log/cron.log 2>&1" > ./bagop-cron 
 
 # Copy bagop-cron file to the cron.d directory
 mv ./bagop-cron /etc/cron.d/bagop-cron
