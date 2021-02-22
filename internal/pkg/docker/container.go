@@ -42,14 +42,19 @@ func containerEnabled(container types.Container) bool {
 
 // FindVendor returns the DB vendor of a given container
 // Returns error if no supported vendor could be identified
-func FindVendor(container types.Container) (string, error) {
+func FindVendor(cli *client.Client, container types.Container) (string, error) {
 	labelVendor := strings.ToLower(container.Labels[vendorLabel])
 	allowedVendors := []string{"mysql", "postgres", "mariadb"}
 	if utility.Contains(allowedVendors, labelVendor) {
 		return labelVendor, nil
 	}
 
-	imageVendor := strings.Split(container.Image, ":")[0]
+	inspect, _, err := cli.ContainerInspectWithRaw(context.Background(), container.ID, false)
+	if err != nil {
+		return "", fmt.Errorf("Could not inspect container with ID: %s", container.ImageID)
+	}
+
+	imageVendor := strings.Split(inspect.Config.Image, ":")[0]
 
 	if utility.Contains(allowedVendors, imageVendor) {
 		return imageVendor, nil

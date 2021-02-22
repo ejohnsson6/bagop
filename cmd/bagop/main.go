@@ -40,7 +40,7 @@ func main() {
 
 	for _, container := range containers {
 		l.Logger.Infof("Trying to dump container %s", container.ID[0:12])
-		vendor, err := docker.FindVendor(container)
+		vendor, err := docker.FindVendor(cli, container)
 		if err != nil {
 			l.Logger.Errorf(err.Error())
 			continue
