@@ -46,6 +46,8 @@ To configure backups for an individual container, the following docker labels ca
 | bagop.name   | no       | The name of the resulting .sql file for this container,  will use docker id if not set                                         |
 | bagop.vendor | no       | can be set to ``postgres`` or ``mysql``. Overrides vendor detection and forces bagop to treat the container as the given vendor|
 
+Arbitrary data can also be backed up along with the databases. This can be done by mounting volumes into the `/extra` folder.
+
 # Contributions
 
 Are appreciated
