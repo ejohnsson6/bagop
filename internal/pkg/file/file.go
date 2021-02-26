@@ -3,6 +3,7 @@ package file
 import (
 	"io"
 	"os"
+	"path/filepath"
 )
 
 // ReaderToFile reads from a reader and writes the contents to a file until EOF
@@ -11,7 +12,7 @@ func ReaderToFile(reader io.Reader, dir string, fileName string) error {
 	os.MkdirAll(dir, 0755)
 
 	// open output file
-	fo, err := os.Create(dir + fileName)
+	fo, err := os.Create(dir + string(filepath.Separator) + fileName)
 	if err != nil {
 		return err
 	}
