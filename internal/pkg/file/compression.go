@@ -10,8 +10,7 @@ import (
 	l "github.com/swexbe/bagop/internal/pkg/logging"
 )
 
-// FolderToTarGZ compresses all files in a directory into a gzipped tar file
-func FolderToTarGZ(sourcedir string, destinationfile string) error {
+func recursiveToTarGZ(sourcedir string, tarfileWriter *tar.Writer) error {
 
 	dir, err := os.Open(sourcedir)
 
@@ -27,29 +26,15 @@ func FolderToTarGZ(sourcedir string, destinationfile string) error {
 		return err
 	}
 
-	tarfile, err := os.Create(destinationfile)
-	l.Logger.Infof("Created Tarball %s", tarfile.Name())
-
-	if err != nil {
-		return err
-	}
-
-	defer tarfile.Close()
-	var fileWriter io.WriteCloser = tarfile
-
-	fileWriter = gzip.NewWriter(tarfile)
-	defer fileWriter.Close()
-	tarfileWriter := tar.NewWriter(fileWriter)
-	defer tarfileWriter.Close()
-
 	for _, fileInfo := range files {
 		l.Logger.Infof("Compressing file %s", fileInfo.Name())
 
+		file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
 		if fileInfo.IsDir() {
+			l.Logger.Infof("Recursively compressing files in folder %s", file.Name())
+			recursiveToTarGZ(file.Name(), tarfileWriter)
 			continue
 		}
-
-		file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
 
 		if err != nil {
 			return err
@@ -58,7 +43,7 @@ func FolderToTarGZ(sourcedir string, destinationfile string) error {
 		defer file.Close()
 
 		header := new(tar.Header)
-		header.Name = fileInfo.Name()
+		header.Name = file.Name()
 		header.Size = fileInfo.Size()
 		header.Mode = int64(fileInfo.Mode())
 		header.ModTime = fileInfo.ModTime()
@@ -75,5 +60,39 @@ func FolderToTarGZ(sourcedir string, destinationfile string) error {
 			return err
 		}
 	}
+
+	return nil
+
+}
+
+// FoldersToTarGZ compresses all files in a list of directores into a gzipped tar file
+// Paths are kept the same as the full system path to avoid conflicts
+func FoldersToTarGZ(sourcedirs []string, destinationfile string) error {
+
+	tarfile, err := os.Create(destinationfile)
+	l.Logger.Infof("Created Tarball %s", tarfile.Name())
+
+	if err != nil {
+		return err
+	}
+
+	defer tarfile.Close()
+	var fileWriter io.WriteCloser = tarfile
+
+	fileWriter = gzip.NewWriter(tarfile)
+	defer fileWriter.Close()
+	tarfileWriter := tar.NewWriter(fileWriter)
+	defer tarfileWriter.Close()
+
+	for _, sourcedir := range sourcedirs {
+		l.Logger.Infof("Compressing files in folder %s", sourcedir)
+		err = recursiveToTarGZ(sourcedir, tarfileWriter)
+
+		if err != nil {
+			return err
+		}
+
+	}
+
 	return nil
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/docker/docker/client"
@@ -14,7 +15,9 @@ import (
 )
 
 const (
-	backupLocation = "/tmp/bagop/"
+	backupLocation   = "/tmp/bagop"
+	backupDBLocation = backupLocation + "/db"
+	extraLocation    = "/extra"
 )
 
 func panicIfErr(err error) {
@@ -60,11 +63,11 @@ func main() {
 		reader, err := docker.RunCommand(cli, container, cmd)
 		panicIfErr(err)
 
-		file.ReaderToFile(reader, backupLocation, containerName+".sql")
+		file.ReaderToFile(reader, backupDBLocation, containerName+".sql")
 
 	}
-	tarFileLocation := backupLocation + timestamp + ".tar.gz"
-	file.FolderToTarGZ(backupLocation, tarFileLocation)
+	tarFileLocation := backupLocation + string(filepath.Separator) + timestamp + ".tar.gz"
+	file.FoldersToTarGZ([]string{backupDBLocation, extraLocation}, tarFileLocation)
 
 	err = aws.UploadFile(tarFileLocation, timestamp)
 	panicIfErr(err)
