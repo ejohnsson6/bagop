@@ -11,7 +11,7 @@ import (
 
 // UploadFile uploads a file to an AWS glacier vault
 // The vault is determined by the S3_VAULT_NAME env variable
-func UploadFile(fileLocation string, timestamp string) error {
+func UploadFile(fileLocation string, timestamp string) (string, error) {
 	// Initialize a session that the SDK uses to load
 	// credentials from the shared credentials file ~/.aws/credentials
 	// and configuration from the shared configuration file ~/.aws/config.
@@ -21,7 +21,7 @@ func UploadFile(fileLocation string, timestamp string) error {
 
 	file, err := os.Open(fileLocation)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer file.Close()
 
@@ -42,9 +42,9 @@ func UploadFile(fileLocation string, timestamp string) error {
 		Body:               file, // 2 MB buffer
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	l.Logger.Infof("Upload succeeded with id %s", *result.ArchiveId)
-	return nil
+	return *result.ArchiveId, nil
 }
