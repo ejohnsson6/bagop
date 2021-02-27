@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	backupLocation   = "/tmp/bagop"
-	backupDBLocation = backupLocation + "/db"
-	extraLocation    = "/extra"
+	backupLocation    = "/tmp/bagop"
+	backupDBLocation  = backupLocation + "/db"
+	extraLocation     = "/extra"
+	archiveIDLocation = "/var/bagop/ids.log"
 )
 
 func panicIfErr(err error) {
@@ -63,12 +64,17 @@ func main() {
 		reader, err := docker.RunCommand(cli, container, cmd)
 		panicIfErr(err)
 
-		file.ReaderToFile(reader, backupDBLocation, containerName+".sql")
+		file.ReaderToFile(reader, backupDBLocation+string(filepath.Separator)+containerName+".sql")
 
 	}
 	tarFileLocation := backupLocation + string(filepath.Separator) + timestamp + ".tar.gz"
 	file.FoldersToTarGZ([]string{backupDBLocation, extraLocation}, tarFileLocation)
 
-	err = aws.UploadFile(tarFileLocation, timestamp)
+	id, err := aws.UploadFile(tarFileLocation, timestamp)
 	panicIfErr(err)
+
+	// Write archive id to log file
+	err = file.WriteStringToFile(archiveIDLocation, 0755, timestamp+" : "+id)
+	panicIfErr(err)
+
 }
