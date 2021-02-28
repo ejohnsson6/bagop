@@ -2,14 +2,13 @@ package file
 
 import (
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 )
 
 // WriteStringToFile appends a new line and string to a file
 // Creating the file and directory if it doesn't exist
-func WriteStringToFile(fileName string, perm fs.FileMode, text string) error {
+func WriteStringToFile(fileName string, perm os.FileMode, text string) error {
 
 	err := os.MkdirAll(filepath.Dir(fileName), perm)
 
