@@ -6,6 +6,7 @@ import (
 
 	"github.com/joho/godotenv"
 	l "github.com/swexbe/bagop/internal/pkg/logging"
+	"github.com/swexbe/bagop/internal/pkg/utility"
 )
 
 func panicIfErr(err error) {
@@ -26,7 +27,7 @@ func main() {
 	} else if *backup {
 		makeBackup()
 	} else if *version {
-		fmt.Printf("bagop v%s", version)
+		fmt.Printf("bagop v%s", utility.Version)
 	} else {
 		flag.PrintDefaults()
 	}

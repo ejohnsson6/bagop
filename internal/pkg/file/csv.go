@@ -10,11 +10,12 @@ import (
 
 // SerializeableArchive is an archive which can be serialized as a CSV object
 type SerializeableArchive struct {
-	ArchiveID string    `csv:"archive_id"`
-	Checksum  string    `csv:"checksum"`
-	Location  string    `csv:"location"`
-	Timestamp time.Time `csv:"timestamp"`
-	Expires   time.Time `csv:"expires"`
+	ArchiveID        string    `csv:"archive_id"`
+	Checksum         string    `csv:"checksum"`
+	Location         string    `csv:"location"`
+	Timestamp        time.Time `csv:"timestamp"`
+	Expires          bool      `csv:"expires"`
+	ExpiresTimestamp time.Time `csv:"expires_timestamp"`
 }
 
 func GetArchiveIDs(csvFile string) ([]SerializeableArchive, error) {
@@ -27,7 +28,7 @@ func GetArchiveIDs(csvFile string) ([]SerializeableArchive, error) {
 		return nil, err
 	}
 	var out []SerializeableArchive
-	if err = gocsv.UnmarshalFile(f, out); err != nil && err != gocsv.ErrEmptyCSVFile {
+	if err = gocsv.UnmarshalFile(f, &out); err != nil && err != gocsv.ErrEmptyCSVFile {
 		return nil, err
 	}
 
@@ -45,7 +46,7 @@ func WriteArchiveIDs(archiveIDs []SerializeableArchive, csvFile string) error {
 		return err
 	}
 	defer f.Close()
-	gocsv.MarshalFile(archiveIDs, f)
+	gocsv.MarshalFile(&archiveIDs, f)
 
 	return nil
 

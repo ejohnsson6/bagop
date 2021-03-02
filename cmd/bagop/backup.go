@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/docker/docker/client"
@@ -53,25 +54,30 @@ func makeBackup() {
 		panicIfErr(err)
 		reader, err := docker.RunCommand(cli, container, cmd)
 		panicIfErr(err)
-
 		file.ReaderToFile(reader, utility.BackupDBLocation+string(filepath.Separator)+containerName+".sql")
-
 	}
+
 	tarFileLocation := utility.BackupLocation + string(filepath.Separator) + timestampStr + ".tar.gz"
 	file.FoldersToTarGZ([]string{utility.BackupDBLocation, utility.ExtraLocation}, tarFileLocation)
-
 	res, err := aws.UploadFile(tarFileLocation, timestampStr)
 	panicIfErr(err)
 
+	l.Logger.Infof("Writing archive id to file")
+	ttl := os.Getenv(utility.ENVTTL)
+	ttlInt, err := strconv.Atoi(ttl)
+	expires := true
+	var expiresTimestamp time.Time
+	// Default to never if TTL can't be parsed
+	if err != nil {
+		expires = false
+		l.Logger.Infof("Couldn't parse TTL: %s", err.Error())
+	} else {
+		expiresTimestamp = timestamp.AddDate(0, 0, ttlInt)
+		l.Logger.Infof("Archive will expire %s", expiresTimestamp.Format(time.RFC3339))
+	}
 	archiveIDs, err := file.GetArchiveIDs(utility.ArchiveIDLocation)
 	panicIfErr(err)
-
-	ttl, err := time.ParseDuration(os.Getenv(utility.ENVTTL))
-	panicIfErr(err)
-
-	expires := timestamp.Add(ttl)
-	archiveIDs = append(archiveIDs, file.SerializeableArchive{ArchiveID: *res.ArchiveId, Location: *res.Location, Checksum: *res.Checksum, Timestamp: timestamp, Expires: expires})
-
+	archiveIDs = append(archiveIDs, file.SerializeableArchive{ArchiveID: *res.ArchiveId, Location: *res.Location, Checksum: *res.Checksum, Timestamp: timestamp, Expires: expires, ExpiresTimestamp: expiresTimestamp})
 	err = file.WriteArchiveIDs(archiveIDs, utility.ArchiveIDLocation)
 	panicIfErr(err)
 }
