@@ -1,6 +1,7 @@
 #!/bin/sh
 while true
 do
-    ./bagop
+    ./bagop -b
+    ./bagop -c
     sleep $SLEEP
 done
