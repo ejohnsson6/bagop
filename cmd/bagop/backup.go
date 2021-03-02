@@ -57,10 +57,10 @@ func makeBackup() {
 	tarFileLocation := backupLocation + string(filepath.Separator) + timestamp + ".tar.gz"
 	file.FoldersToTarGZ([]string{backupDBLocation, extraLocation}, tarFileLocation)
 
-	id, err := aws.UploadFile(tarFileLocation, timestamp)
+	_, err = aws.UploadFile(tarFileLocation, timestamp)
 	panicIfErr(err)
 
 	// Write archive id to log file
-	err = file.WriteStringToFile(archiveIDLocation, 0755, timestamp+" : "+id)
-	panicIfErr(err)
+	// err = file.WriteStringToFile(archiveIDLocation, 0644, timestamp+" : "+id)
+	// panicIfErr(err)
 }
