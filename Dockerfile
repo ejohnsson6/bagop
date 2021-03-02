@@ -1,16 +1,15 @@
 # build stage
-FROM golang:1.15 AS build-env
+FROM golang:1.15-alpine AS build-env
 ADD . /src
+RUN apk update && apk add --no-cache git
 RUN cd /src && go build -o bagop github.com/swexbe/bagop/cmd/bagop
 
 # final stage
-FROM ubuntu:20.04
+FROM alpine
 WORKDIR /app
 COPY --from=build-env /src/bagop /app/
-COPY cron.sh /app/
+# Add certs
+RUN apk add -U --no-cache ca-certificates
+COPY run_and_wait.sh /app/
 
-RUN apt-get update 
-RUN apt-get -y install cron
-RUN apt-get -y install ca-certificates
-
-CMD ./cron.sh
+CMD ./run_and_wait.sh
