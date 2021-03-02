@@ -66,7 +66,7 @@ func FindVendor(cli *client.Client, container types.Container) (string, error) {
 func FindName(container types.Container) string {
 	name := container.Labels[nameLabel]
 	if name == "" {
-		name = container.ID
+		name = container.ID[0:12]
 	}
 	return name
 }
