@@ -15,7 +15,23 @@ import (
 	"github.com/swexbe/bagop/internal/pkg/utility"
 )
 
-func makeBackup() {
+func parseExpirationDate(now time.Time, ttl string) (bool, time.Time) {
+	if ttl == "" {
+		return false, time.Time{}
+	}
+	ttlInt, err := strconv.Atoi(ttl)
+	// Default to never if TTL can't be parsed
+	if err != nil {
+		l.Logger.Warnf("Couldn't parse TTL, defaulting to no expiration: %s", err.Error())
+		return false, time.Time{}
+	}
+	expiresTimestamp := now.AddDate(0, 0, ttlInt)
+	l.Logger.Infof("Archive will expire %s", expiresTimestamp.Format(time.RFC3339))
+	return true, expiresTimestamp
+
+}
+
+func makeBackup(ttl string) {
 	l.Logger.Infof("Looking for labelled containers")
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	panicIfErr(err)
@@ -63,18 +79,8 @@ func makeBackup() {
 	panicIfErr(err)
 
 	l.Logger.Infof("Writing archive id to file")
-	ttl := os.Getenv(utility.ENVTTL)
-	ttlInt, err := strconv.Atoi(ttl)
-	expires := true
-	var expiresTimestamp time.Time
-	// Default to never if TTL can't be parsed
-	if err != nil {
-		expires = false
-		l.Logger.Infof("Couldn't parse TTL: %s", err.Error())
-	} else {
-		expiresTimestamp = timestamp.AddDate(0, 0, ttlInt)
-		l.Logger.Infof("Archive will expire %s", expiresTimestamp.Format(time.RFC3339))
-	}
+	expires, expiresTimestamp := parseExpirationDate(timestamp, ttl)
+
 	archiveIDs, err := file.GetArchiveIDs(utility.ArchiveIDLocation)
 	panicIfErr(err)
 	archiveIDs = append(archiveIDs, file.SerializeableArchive{ArchiveID: *res.ArchiveId, Location: *res.Location, Checksum: *res.Checksum, Timestamp: timestamp, Expires: expires, ExpiresTimestamp: expiresTimestamp})
