@@ -27,11 +27,11 @@ func recursiveToTarGZ(sourcedir string, tarfileWriter *tar.Writer) error {
 	}
 
 	for _, fileInfo := range files {
-		l.Logger.Infof("Compressing file %s", fileInfo.Name())
+		l.Logger.Debugf("Compressing file %s", fileInfo.Name())
 
 		file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
 		if fileInfo.IsDir() {
-			l.Logger.Infof("Recursively compressing files in folder %s", file.Name())
+			l.Logger.Debugf("Recursively compressing files in folder %s", file.Name())
 			recursiveToTarGZ(file.Name(), tarfileWriter)
 			continue
 		}
@@ -70,7 +70,7 @@ func recursiveToTarGZ(sourcedir string, tarfileWriter *tar.Writer) error {
 func FoldersToTarGZ(sourcedirs []string, destinationfile string) error {
 
 	tarfile, err := os.Create(destinationfile)
-	l.Logger.Infof("Created Tarball %s", tarfile.Name())
+	l.Logger.Infof("Creating Tarball %s", tarfile.Name())
 
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func FoldersToTarGZ(sourcedirs []string, destinationfile string) error {
 	defer tarfileWriter.Close()
 
 	for _, sourcedir := range sourcedirs {
-		l.Logger.Infof("Compressing files in folder %s", sourcedir)
+		l.Logger.Debugf("Compressing files in folder %s", sourcedir)
 		err = recursiveToTarGZ(sourcedir, tarfileWriter)
 
 		if err != nil {

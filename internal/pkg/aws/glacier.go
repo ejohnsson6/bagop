@@ -47,6 +47,5 @@ func UploadFile(fileLocation string, timestamp string) (*glacier.ArchiveCreation
 		return nil, err
 	}
 
-	l.Logger.Infof("Upload succeeded with id %s", *result.ArchiveId)
 	return result, nil
 }
