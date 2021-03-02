@@ -1,7 +1,7 @@
 #!/bin/sh
 while true
 do
-    bagop -b
+    bagop -b -ttl=$TTL
     bagop -c
     sleep $SLEEP
 done

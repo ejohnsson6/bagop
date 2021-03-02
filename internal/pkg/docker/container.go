@@ -48,14 +48,11 @@ func FindVendor(cli *client.Client, container types.Container) (string, error) {
 	if utility.Contains(allowedVendors, labelVendor) {
 		return labelVendor, nil
 	}
-
 	inspect, _, err := cli.ContainerInspectWithRaw(context.Background(), container.ID, false)
 	if err != nil {
 		return "", fmt.Errorf("Could not inspect container with ID: %s", container.ImageID)
 	}
-
 	imageVendor := strings.Split(inspect.Config.Image, ":")[0]
-
 	if utility.Contains(allowedVendors, imageVendor) {
 		return imageVendor, nil
 	}
