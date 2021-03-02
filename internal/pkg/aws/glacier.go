@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/glacier"
 	l "github.com/swexbe/bagop/internal/pkg/logging"
@@ -12,11 +13,16 @@ import (
 // UploadFile uploads a file to an AWS glacier vault
 // The vault is determined by the S3_VAULT_NAME env variable
 func UploadFile(fileLocation string, timestamp string) (string, error) {
+
+	region := os.Getenv("AWS_DEFAULT_REGION")
 	// Initialize a session that the SDK uses to load
 	// credentials from the shared credentials file ~/.aws/credentials
 	// and configuration from the shared configuration file ~/.aws/config.
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
 	}))
 
 	file, err := os.Open(fileLocation)
