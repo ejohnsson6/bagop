@@ -11,32 +11,41 @@ import (
 // SerializeableArchive is an archive which can be serialized as a CSV object
 type SerializeableArchive struct {
 	ArchiveID string    `csv:"archive_id"`
+	Checksum  string    `csv:"checksum"`
+	Location  string    `csv:"location"`
 	Timestamp time.Time `csv:"timestamp"`
 	Expires   time.Time `csv:"expires"`
 }
 
-func GetArchiveIDs(csvFile string) []SerializeableArchive {
+func GetArchiveIDs(csvFile string) ([]SerializeableArchive, error) {
 
-	return nil
+	if err := os.MkdirAll(filepath.Dir(csvFile), 0644); err != nil {
+		return nil, err
+	}
+	f, err := os.OpenFile(csvFile, os.O_RDONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return nil, err
+	}
+	var out []SerializeableArchive
+	if err = gocsv.UnmarshalFile(f, out); err != nil && err != gocsv.ErrEmptyCSVFile {
+		return nil, err
+	}
+
+	return out, nil
 
 }
 
 func WriteArchiveIDs(archiveIDs []SerializeableArchive, csvFile string) error {
 
-	b, err := gocsv.MarshalBytes(archiveIDs)
-	if err != nil {
+	if err := os.MkdirAll(filepath.Base(csvFile), 0644); err != nil {
 		return err
 	}
-
-	if err = os.MkdirAll(filepath.Base(csvFile), 0644); err != nil {
-		return err
-	}
-	f, err := os.OpenFile(csvFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	f, err := os.OpenFile(csvFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	f.Write(b)
+	gocsv.MarshalFile(archiveIDs, f)
 
 	return nil
 
