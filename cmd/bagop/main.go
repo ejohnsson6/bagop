@@ -8,14 +8,6 @@ import (
 	l "github.com/swexbe/bagop/internal/pkg/logging"
 )
 
-const (
-	backupLocation    = "/tmp/bagop"
-	backupDBLocation  = backupLocation + "/db"
-	extraLocation     = "/extra"
-	archiveIDLocation = "/var/bagop/ids.log"
-	version           = "1.1.0"
-)
-
 func panicIfErr(err error) {
 	if err != nil {
 		l.Logger.Fatalf(err.Error())

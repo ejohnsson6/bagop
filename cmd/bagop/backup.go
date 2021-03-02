@@ -11,6 +11,7 @@ import (
 	"github.com/swexbe/bagop/internal/pkg/docker"
 	"github.com/swexbe/bagop/internal/pkg/file"
 	l "github.com/swexbe/bagop/internal/pkg/logging"
+	"github.com/swexbe/bagop/internal/pkg/utility"
 )
 
 func makeBackup() {
@@ -25,9 +26,11 @@ func makeBackup() {
 		l.Logger.Warnf("No labelled containers found, exiting...")
 		return
 	}
-	timestamp := time.Now().Format(time.RFC3339)
 
-	os.RemoveAll(backupLocation)
+	timestamp := time.Now()
+	timestampStr := timestamp.Format(time.RFC3339)
+
+	os.RemoveAll(utility.BackupLocation)
 
 	for _, container := range containers {
 		l.Logger.Infof("Trying to dump container %s", container.ID[0:12])
@@ -51,16 +54,24 @@ func makeBackup() {
 		reader, err := docker.RunCommand(cli, container, cmd)
 		panicIfErr(err)
 
-		file.ReaderToFile(reader, backupDBLocation+string(filepath.Separator)+containerName+".sql")
+		file.ReaderToFile(reader, utility.BackupDBLocation+string(filepath.Separator)+containerName+".sql")
 
 	}
-	tarFileLocation := backupLocation + string(filepath.Separator) + timestamp + ".tar.gz"
-	file.FoldersToTarGZ([]string{backupDBLocation, extraLocation}, tarFileLocation)
+	tarFileLocation := utility.BackupLocation + string(filepath.Separator) + timestampStr + ".tar.gz"
+	file.FoldersToTarGZ([]string{utility.BackupDBLocation, utility.ExtraLocation}, tarFileLocation)
 
-	_, err = aws.UploadFile(tarFileLocation, timestamp)
+	res, err := aws.UploadFile(tarFileLocation, timestampStr)
 	panicIfErr(err)
 
-	// Write archive id to log file
-	// err = file.WriteStringToFile(archiveIDLocation, 0644, timestamp+" : "+id)
-	// panicIfErr(err)
+	archiveIDs, err := file.GetArchiveIDs(utility.ArchiveIDLocation)
+	panicIfErr(err)
+
+	ttl, err := time.ParseDuration(os.Getenv(utility.ENVTTL))
+	panicIfErr(err)
+
+	expires := timestamp.Add(ttl)
+	archiveIDs = append(archiveIDs, file.SerializeableArchive{ArchiveID: *res.ArchiveId, Location: *res.Location, Checksum: *res.Checksum, Timestamp: timestamp, Expires: expires})
+
+	err = file.WriteArchiveIDs(archiveIDs, utility.ArchiveIDLocation)
+	panicIfErr(err)
 }

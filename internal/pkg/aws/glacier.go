@@ -4,37 +4,33 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/glacier"
 	l "github.com/swexbe/bagop/internal/pkg/logging"
+	"github.com/swexbe/bagop/internal/pkg/utility"
 )
 
 // UploadFile uploads a file to an AWS glacier vault
 // The vault is determined by the S3_VAULT_NAME env variable
-func UploadFile(fileLocation string, timestamp string) (string, error) {
+func UploadFile(fileLocation string, timestamp string) (*glacier.ArchiveCreationOutput, error) {
 
-	region := os.Getenv("AWS_DEFAULT_REGION")
 	// Initialize a session that the SDK uses to load
 	// credentials from the shared credentials file ~/.aws/credentials
 	// and configuration from the shared configuration file ~/.aws/config.
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
-		Config: aws.Config{
-			Region: aws.String(region),
-		},
 	}))
 
 	file, err := os.Open(fileLocation)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer file.Close()
 
 	// Create Glacier client in default region
 	svc := glacier.New(sess)
 
-	vaultName := os.Getenv("S3_VAULT_NAME")
+	vaultName := os.Getenv(utility.ENVVault)
 
 	// start snippet
 
@@ -48,9 +44,9 @@ func UploadFile(fileLocation string, timestamp string) (string, error) {
 		Body:               file, // 2 MB buffer
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	l.Logger.Infof("Upload succeeded with id %s", *result.ArchiveId)
-	return *result.ArchiveId, nil
+	return result, nil
 }

@@ -10,7 +10,7 @@ require (
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4 // indirect
+	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/joho/godotenv v1.3.0
