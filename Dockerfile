@@ -6,10 +6,13 @@ RUN cd /src && go build -o bagop github.com/swexbe/bagop/cmd/bagop
 
 # final stage
 FROM alpine
-WORKDIR /app
+WORKDIR /home/root
 COPY --from=build-env /src/bagop /app/
 # Add certs
 RUN apk add -U --no-cache ca-certificates
+# If you need to use cli
+RUN apk add bash
+RUN ["ln", "-s", "/app/bagop", "/usr/bin/bagop"]
 COPY run_and_wait.sh /app/
 
-CMD ./run_and_wait.sh
+CMD /app/run_and_wait.sh
