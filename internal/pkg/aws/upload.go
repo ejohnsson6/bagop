@@ -7,12 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/glacier"
 	l "github.com/swexbe/bagop/internal/pkg/logging"
-	"github.com/swexbe/bagop/internal/pkg/utility"
 )
 
 // UploadFile uploads a file to an AWS glacier vault
 // The vault is determined by the S3_VAULT_NAME env variable
-func UploadFile(fileLocation string, timestamp string) (*glacier.ArchiveCreationOutput, error) {
+func UploadFile(fileLocation string, timestamp string, vaultName string) (*glacier.ArchiveCreationOutput, error) {
 
 	// Initialize a session that the SDK uses to load
 	// credentials from the shared credentials file ~/.aws/credentials
@@ -29,8 +28,6 @@ func UploadFile(fileLocation string, timestamp string) (*glacier.ArchiveCreation
 
 	// Create Glacier client in default region
 	svc := glacier.New(sess)
-
-	vaultName := os.Getenv(utility.ENVVault)
 
 	// start snippet
 

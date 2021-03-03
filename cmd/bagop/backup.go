@@ -45,7 +45,7 @@ func parseExpirationDate(now time.Time, ttl string) (bool, time.Time) {
 
 }
 
-func makeBackup(ttl string) {
+func makeBackup(ttl string, vaultName string) {
 	l.Logger.Infof("Looking for labelled containers")
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	panicIfErr(err)
@@ -83,15 +83,22 @@ func makeBackup(ttl string) {
 
 	tarFileLocation := utility.BackupLocation + string(filepath.Separator) + timestampStr + ".tar.gz"
 	file.FoldersToTarGZ([]string{utility.BackupDBLocation, utility.ExtraLocation}, tarFileLocation)
-	res, err := aws.UploadFile(tarFileLocation, timestampStr)
+	result, err := aws.UploadFile(tarFileLocation, timestampStr, vaultName)
 	panicIfErr(err)
 
-	l.Logger.Debugf("Writing archive id to csv: %s", *res.ArchiveId)
+	l.Logger.Debugf("Writing archive id to csv: %s", *result.ArchiveId)
 	expires, expiresTimestamp := parseExpirationDate(timestamp, ttl)
 
 	archiveIDs, err := file.GetArchiveIDs(utility.ArchiveIDLocation)
 	panicIfErr(err)
-	archiveIDs = append(archiveIDs, file.SerializeableArchive{ArchiveID: *res.ArchiveId, Location: *res.Location, Checksum: *res.Checksum, Timestamp: timestamp, Expires: expires, ExpiresTimestamp: expiresTimestamp})
+	archiveIDs = append(archiveIDs, file.SerializeableArchive{
+		ArchiveID:        *result.ArchiveId,
+		Location:         *result.Location,
+		Checksum:         *result.Checksum,
+		Timestamp:        timestamp,
+		Expires:          expires,
+		ExpiresTimestamp: expiresTimestamp,
+	})
 	err = file.WriteArchiveIDs(archiveIDs, utility.ArchiveIDLocation)
 	panicIfErr(err)
 
