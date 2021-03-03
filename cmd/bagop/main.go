@@ -37,7 +37,7 @@ func main() {
 	} else if *backup {
 		makeBackup(*ttl, vaultName)
 	} else if *version {
-		fmt.Printf("bagop v%s", utility.Version)
+		fmt.Printf("bagop v%s\n", utility.Version)
 	} else {
 		flag.PrintDefaults()
 	}
