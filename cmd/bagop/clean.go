@@ -48,6 +48,8 @@ func cleanBackups(vaultName string) {
 	for _, archive := range archives {
 		if filterArchiveHelper(archive, vaultName) {
 			archivesNew = append(archivesNew, archive)
+		} else {
+			numDeleted++
 		}
 	}
 
