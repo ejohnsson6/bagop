@@ -3,7 +3,7 @@ package utility
 const (
 	// BackupLocation is the base location where are stored locally
 	// This is removed every run
-	BackupLocation = "/tmp/bagop"
+	BackupLocation = "/var/bagop/backups"
 	// BackupDBLocation is the place where databases are dumped
 	BackupDBLocation = BackupLocation + "/db"
 	// ExtraLocation is where extra data to be backed up is pulled from
