@@ -70,6 +70,7 @@ The following directories can be mounted on the filesystem:
 ### Input Parameters
 
 Manual backups can be run using docker exec or interactive shell. The following input parameters are available:
+
 | Flag | Description |
 |----------|------------------------------------------------------------------------|
 | -v | Verbose mode |
