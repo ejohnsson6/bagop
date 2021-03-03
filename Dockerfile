@@ -13,6 +13,7 @@ RUN apk add -U --no-cache ca-certificates
 # If you need to use cli
 RUN apk add bash
 RUN ["ln", "-s", "/app/bagop", "/usr/bin/bagop"]
+VOLUME /var/bagop
 COPY run_and_wait.sh /app/
 
 CMD /app/run_and_wait.sh
