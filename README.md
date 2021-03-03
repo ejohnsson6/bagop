@@ -11,7 +11,7 @@ Tool to make automatic backups of any number of docker database containers to AW
 
 Example run command:
 
-```
+```bash
 docker run -e S3_VAULT_NAME=yourvault
     -e AWS_DEFAULT_REGION=eu-north-1
     -e AWS_SECRET_ACCESS_KEY=%%secret%%
