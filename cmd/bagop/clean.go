@@ -9,11 +9,9 @@ import (
 	"github.com/swexbe/bagop/internal/pkg/utility"
 )
 
+// Returns true if archive has expired
 func hasExpired(archive file.SerializeableArchive) bool {
-	if !archive.Expires {
-		return false
-	}
-	return archive.ExpiresTimestamp.After(time.Now())
+	return archive.Expires && archive.ExpiresTimestamp.Before(time.Now())
 }
 
 // Tries to delete the archive from the vault if expired
