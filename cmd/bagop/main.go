@@ -23,11 +23,15 @@ func main() {
 	backup := flag.Bool("b", false, "Backup: Make a backup and push it to Glacier")
 	version := flag.Bool("version", false, "Version: Display version")
 	verbose := flag.Bool("v", false, "Verbose: Display debug information")
+	forceColor := flag.Bool("force-color", false, "Force Color: Force output to be color")
 	ttl := flag.String("ttl", "", "Time to Live: Number of days until archives will be deleted")
 	vaultName := os.Getenv(utility.ENVVault)
 
 	flag.Parse()
 
+	if *forceColor {
+		l.Logger.SetFormatter(&logrus.TextFormatter{ForceColors: true})
+	}
 	if *verbose {
 		l.Logger.SetLevel(logrus.DebugLevel)
 		l.Logger.Infof("Running in verbose mode")
