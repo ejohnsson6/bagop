@@ -36,13 +36,17 @@ func main() {
 		l.Logger.SetLevel(logrus.DebugLevel)
 		l.Logger.Infof("Running in verbose mode")
 	}
+	if *version {
+		fmt.Printf("bagop v%s\n", utility.Version)
+		os.Exit(0)
+	}
 	if *clean {
 		cleanBackups(vaultName)
-	} else if *backup {
+	}
+	if *backup {
 		makeBackup(*ttl, vaultName)
-	} else if *version {
-		fmt.Printf("bagop v%s\n", utility.Version)
-	} else {
+	}
+	if !(*version || *clean || *backup) {
 		flag.PrintDefaults()
 	}
 }
