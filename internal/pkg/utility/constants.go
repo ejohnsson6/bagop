@@ -13,7 +13,5 @@ const (
 	// Version is the version of bagop
 	Version = "1.1.0"
 	// ENVVault is the Environment Variable used for specifying the Glacier Vault
-	ENVVault = "S3_VAULT_NAME"
-	// ENVTTL is the Environment Variable used for specifying Time to Live for backups
-	ENVTTL = "TTL"
+	ENVVault = "BAGOP_VAULT_NAME"
 )

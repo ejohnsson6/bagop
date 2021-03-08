@@ -14,6 +14,6 @@ RUN apk add -U --no-cache ca-certificates
 RUN apk add bash
 RUN ["ln", "-s", "/app/bagop", "/usr/bin/bagop"]
 VOLUME /var/bagop
-COPY run_and_wait.sh /app/
+COPY /shell/* /home/root/
 
-CMD /app/run_and_wait.sh
+CMD /home/root/cron.sh
