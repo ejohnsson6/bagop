@@ -12,10 +12,10 @@ Tool to make automatic backups of any number of docker database containers to AW
 Example run command:
 
 ```bash
-docker run -e S3_VAULT_NAME=yourvault
-    -e BAGOP_AWS_DEFAULT_REGION=eu-north-1
-    -e BAGOP_AWS_SECRET_ACCESS_KEY=%%secret%%
-    -e BAGOP_AWS_ACCESS_KEY_ID=%%secret%%
+docker run -e BAGOP_VAULT_NAME=myvaultname
+    -e AWS_DEFAULT_REGION=myregion
+    -e AWS_SECRET_ACCESS_KEY=mysecretaccesskey
+    -e AWS_ACCESS_KEY_ID=myaccesskeyid
     -e CRON="0 4 * * 7"
     -e BAGOP_TTL=90
     -v /var/run/docker.sock:/var/run/docker.sock
