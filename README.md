@@ -78,9 +78,15 @@ Manual backups can be run using docker exec or interactive shell. The following 
 | -v           | Verbose mode                                                           |
 | -b           | Make a backup                                                          |
 | -c           | Delete expired containers from Glacier                                 |
+| -l           | List all non-expired containers                                        |
 | -ttl=        | Time to Live for backup in days. If not set, backup will never expire. |
 | -version     | Display version                                                        |
 | -force-color | Force color output                                                     |
+
+## Retrieving An Archive
+
+1. Run `bagop -l` inside the container and pick out an archive to retrieve. This can be done using `docker exec my_bagop_container "bagop -l"`.
+2. Follow the [AWS Glacier CLI Documentation for retrieving an archive](https://docs.aws.amazon.com/amazonglacier/latest/dev/downloading-an-archive-two-steps.html) starting from step 1b.
 
 ## Contributions
 
