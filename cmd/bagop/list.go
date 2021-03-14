@@ -15,10 +15,12 @@ func printArchives() {
 	panicIfErr(err)
 
 	tw := table.NewWriter()
+
+	tw.AppendHeader(table.Row{"TIMESTAMP", "ARCHIVE_ID", "EXPIRES"})
 	tw.SetColumnConfigs([]table.ColumnConfig{
-		{Name: "Timestamp"},
-		{Name: "ArchiveID"},
-		{Name: "Expires"},
+		{Name: "TIMESTAMP"},
+		{Name: "ARCHIVE_ID", AlignHeader: text.AlignCenter},
+		{Name: "EXPIRES"},
 	})
 
 	for _, archive := range archives {
