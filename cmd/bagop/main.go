@@ -21,6 +21,7 @@ func main() {
 	godotenv.Load()
 	clean := flag.Bool("c", false, "Clean: Remove archives which have expired")
 	backup := flag.Bool("b", false, "Backup: Make a backup and push it to Glacier")
+	list := flag.Bool("l", false, "List: Pretty print all non-expired archives")
 	version := flag.Bool("version", false, "Version: Display version")
 	verbose := flag.Bool("v", false, "Verbose: Display debug information")
 	forceColor := flag.Bool("force-color", false, "Force Color: Force output to be color")
@@ -38,6 +39,10 @@ func main() {
 	}
 	if *version {
 		fmt.Printf("bagop v%s\n", utility.Version)
+		os.Exit(0)
+	}
+	if *list {
+		printArchives()
 		os.Exit(0)
 	}
 	if *clean {
