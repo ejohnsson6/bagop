@@ -70,11 +70,11 @@ func recursiveToTarGZ(sourcedir string, tarfileWriter *tar.Writer) error {
 func FoldersToTarGZ(sourcedirs []string, destinationfile string) error {
 
 	tarfile, err := os.Create(destinationfile)
-	l.Logger.Infof("Creating Tarball %s", tarfile.Name())
-
 	if err != nil {
 		return err
 	}
+	l.Logger.Infof("Creating Tarball %s", tarfile.Name())
+
 
 	defer tarfile.Close()
 	var fileWriter io.WriteCloser = tarfile
