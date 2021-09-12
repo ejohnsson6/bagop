@@ -69,25 +69,20 @@ func makeBackup(ttl string, vaultName string) {
 		l.Logger.Infof("Dumping as %s", containerName)
 		vendor, err := docker.FindVendor(cli, container)
 		if err != nil {
-			l.Logger.Errorf(err.Error())
+			l.Logger.Warnf(err.Error())
 			continue
 		}
 		env := docker.GetEnv(cli, container)
 		cmd := getDumpCmd(vendor, env)
 
+		fileName := utility.BackupDBLocation + string(filepath.Separator) + containerName + ".sql"
 		panicIfErr(err)
-		exitCode, str, err := docker.RunCommand(cli, container, cmd)
+		exitCode, err := docker.RunCommand(cli, container, cmd, fileName)
 		panicIfErr(err)
 		l.Logger.Debugf("Dump process exited with code: %d", exitCode)
 		if exitCode != 0 {
-			l.Logger.Errorf("Exit code not 0, run with -v to see output")
-			l.Logger.Debug()
-			continue
+			l.Logger.Warnf("Exit code not 0")
 		}
-		fileName := utility.BackupDBLocation + string(filepath.Separator) + containerName + ".sql"
-		n, err := file.StringToFile(str, fileName)
-		panicIfErr(err)
-		l.Logger.Debugf("Wrote %d bytes to file: %s", n, fileName)
 	}
 
 	tarFileLocation := utility.BackupLocation + string(filepath.Separator) + timestampStr + ".tar.gz"
