@@ -76,9 +76,11 @@ func makeBackup(ttl string, vaultName string) {
 		cmd := getDumpCmd(vendor, env)
 
 		panicIfErr(err)
-		reader, err := docker.RunCommand(cli, container, cmd)
+		exitCode, str, err := docker.RunCommand(cli, container, cmd)
+		l.Logger.Debugf("Dump process exited with code: %d", exitCode)
 		panicIfErr(err)
-		file.ReaderToFile(reader, utility.BackupDBLocation+string(filepath.Separator)+containerName+".sql")
+		_, err = file.StringToFile(str, utility.BackupDBLocation+string(filepath.Separator)+containerName+".sql")
+		panicIfErr(err)
 	}
 
 	tarFileLocation := utility.BackupLocation + string(filepath.Separator) + timestampStr + ".tar.gz"
