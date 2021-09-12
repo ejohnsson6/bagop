@@ -81,7 +81,7 @@ func makeBackup(ttl string, vaultName string) {
 		panicIfErr(err)
 		l.Logger.Debugf("Dump process exited with code: %d", exitCode)
 		if exitCode != 0 {
-			l.Logger.Warnf("Exit code not 0")
+			l.Logger.Warnf("Dump process exited with code %d", exitCode)
 		}
 	}
 
