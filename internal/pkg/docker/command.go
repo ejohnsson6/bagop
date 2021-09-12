@@ -35,5 +35,11 @@ func RunCommand(cli *client.Client, container types.Container, command []string)
 		return 0, "", err
 	}
 
-	return 0, buf.String(), err
+	// Get exit code
+	inspectResp, err := cli.ContainerExecInspect(ctx, IDResp.ID)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return inspectResp.ExitCode, buf.String(), err
 }
