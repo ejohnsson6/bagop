@@ -1,5 +1,5 @@
 # build stage
-FROM golang:1.15-alpine AS build-env
+FROM golang:1.17-alpine AS build-env
 ADD . /src
 RUN apk update && apk add --no-cache git
 RUN cd /src && go build -o bagop github.com/swexbe/bagop/cmd/bagop
