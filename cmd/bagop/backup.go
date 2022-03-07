@@ -26,7 +26,7 @@ func getDumpCmd(vendor string, env []string) []string {
 		return db.DumpPostgresCmd(env)
 	}
 	// Should never happen
-	panic(fmt.Errorf("No dump command for this vendor: %s", vendor))
+	panic(fmt.Errorf("no dump command for this vendor: %s", vendor))
 }
 
 func parseExpirationDate(now time.Time, ttl string) (bool, time.Time) {
@@ -43,6 +43,35 @@ func parseExpirationDate(now time.Time, ttl string) (bool, time.Time) {
 	l.Logger.Debugf("Archive will expire %s", expiresTimestamp.Format(time.RFC3339))
 	return true, expiresTimestamp
 
+}
+
+func pushToGlacier(tarFileLocation string, timestamp time.Time, timestampStr string, vaultName string, ttl string) error {
+
+	result, err := aws.UploadFile(tarFileLocation, timestampStr, vaultName)
+	if err != nil {
+		return err
+	}
+
+	l.Logger.Debugf("Writing archive id to csv: %s", *result.ArchiveId)
+	expires, expiresTimestamp := parseExpirationDate(timestamp, ttl)
+
+	archiveIDs, err := file.GetArchiveIDs(utility.ArchiveIDLocation)
+	if err != nil {
+		return err
+	}
+	archiveIDs = append(archiveIDs, file.SerializeableArchive{
+		ArchiveID:        *result.ArchiveId,
+		Location:         *result.Location,
+		Checksum:         *result.Checksum,
+		Timestamp:        timestamp,
+		Expires:          expires,
+		ExpiresTimestamp: expiresTimestamp,
+	})
+	err = file.WriteArchiveIDs(archiveIDs, utility.ArchiveIDLocation)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func makeBackup(ttl string, vaultName string) {
@@ -87,24 +116,9 @@ func makeBackup(ttl string, vaultName string) {
 
 	tarFileLocation := utility.BackupLocation + string(filepath.Separator) + timestampStr + ".tar.gz"
 	file.FoldersToTarGZ([]string{utility.BackupDBLocation, utility.ExtraLocation}, tarFileLocation)
-	result, err := aws.UploadFile(tarFileLocation, timestampStr, vaultName)
+	if vaultName != "" {
+		err = pushToGlacier(tarFileLocation, timestamp, timestampStr, vaultName, ttl)
+	}
 	panicIfErr(err)
-
-	l.Logger.Debugf("Writing archive id to csv: %s", *result.ArchiveId)
-	expires, expiresTimestamp := parseExpirationDate(timestamp, ttl)
-
-	archiveIDs, err := file.GetArchiveIDs(utility.ArchiveIDLocation)
-	panicIfErr(err)
-	archiveIDs = append(archiveIDs, file.SerializeableArchive{
-		ArchiveID:        *result.ArchiveId,
-		Location:         *result.Location,
-		Checksum:         *result.Checksum,
-		Timestamp:        timestamp,
-		Expires:          expires,
-		ExpiresTimestamp: expiresTimestamp,
-	})
-	err = file.WriteArchiveIDs(archiveIDs, utility.ArchiveIDLocation)
-	panicIfErr(err)
-
 	l.Logger.Infof("Backup succeeded")
 }

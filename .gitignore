@@ -1,2 +1,4 @@
 ./bagop
 .env
+out
+.idea
